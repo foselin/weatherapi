@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación del Clima</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='weather.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Conoce el clima</h1>
+        <form id="weather-form">
+            <input type="text" id="city" placeholder="Ciudad" required>
+            <input type="text" id="country" placeholder="País" required>
+            <button type="submit">Obtener Clima</button>
+        </form>
+        <div id="weather-result" class="hidden">
+            <h2 id="location"></h2>
+            <img id="weather-icon" src="" alt="Icono del clima">
+            <p id="temperature"></p>
+            <p id="description"></p>
+            <p id="humidity"></p>
+            <p id="wind-speed"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('weather-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const city = document.getElementById('city').value.trim();
+    const country = document.getElementById('country').value.trim();
+
+    if (!city || !country) {
+        alert('Por favor, ingrese una ciudad y un país válidos');
+        return;
+    }
+
+    fetch('/get_weather', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            document.getElementById('weather-result').classList.add('hidden');
+        } else {
+            document.getElementById('location').textContent = `${data.city}, ${data.country}`;
+            document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+            document.getElementById('temperature').textContent = `Temperatura: ${data.temperature}°C`;
+            document.getElementById('description').textContent = `Descripción: ${data.description}`;
+            document.getElementById('humidity').textContent = `Humedad: ${data.humidity}%`;
+            document.getElementById('wind-speed').textContent = `Velocidad del viento: ${data.wind_speed} m/s`;
+            document.getElementById('weather-result').classList.remove('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ha ocurrido un error al obtener los datos del clima');
+        document.getElementById('weather-result').classList.add('hidden');
+    });
+});
+
+</script>
+</body>
+</html>
